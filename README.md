@@ -21,14 +21,17 @@ LC（List Cloud）是一个多云攻击面资产梳理的工具，使用 LC 可�
 
 ## 功能
 
-<div align=center><img width="600" src="static/list-cloud-run.png"></div>
+- 列出多个配置的云资产
+- 支持多个云服务商
+- 支持多个云服务
+- 支持过滤内网 IP
+- 高度可扩展性，可方便添加更多云服务商和云服务
+- 可以使用管道符和其他工具结合使用
 
- - 列出多个配置的云资产
- - 支持多个云服务商
- - 支持多个云服务
- - 支持过滤内网 IP
- - 高度可扩展性，可方便添加更多云服务商和云服务
- - 可以使用管道符和其他工具结合使用
+运行截图：
+
+<div align=center><img width="500" src="static/list-cloud-run.png"></div>
+
 
 ### 支持列出的云服务
 
@@ -115,7 +118,7 @@ lc -ep
 lc -ep -s | httpx -sc -title -silent
 ```
 
-<div align=center><img width="600" src="static/lc-httpx.png"></div>
+<div align=center><img width="600" src="static/lc-httpx.png"></div></br>
 
 更多用法可以查看 [LC 使用手册](https://wiki.teamssix.com/lc)
 

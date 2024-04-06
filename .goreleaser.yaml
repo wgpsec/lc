@@ -47,7 +47,7 @@ brews:
     tap:
       owner: wgpsec
       name: homebrew-tap
-      branch: main
+      branch: master
     folder: Formula
     url_template: "https://github.com/wgpsec/lc/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     homepage: "https://wiki.teamssix.com/lc"
