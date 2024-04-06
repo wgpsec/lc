@@ -1,0 +1,70 @@
+name: Bug 反馈
+description: 提交一个 issue 帮助改进这个项目
+title: "[Bug] 在这里输入你的标题"
+labels: ["bug"]
+assignees:
+  - teamssix
+body:
+- type: markdown
+  attributes:
+    value: |
+      感谢您花时间提交这份 issue
+- type: textarea
+  id: what-happened
+  attributes:
+    label: 描述你遇到的问题
+    value: "详细描述你所遇到的问题"
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 复现步骤
+    description: 复现这个问题的步骤
+    placeholder: |
+      1. 在 xxx 情况下
+      2. 执行了 xxx 命令
+      3. 出现了 xxx 错误
+  validations:
+    required: true
+- type: dropdown
+  id: system
+  attributes:
+    label: 操作系统
+    description: 你在哪个操作系统下运行的 LC ？
+    options:
+      - MacOS
+      - Linux
+      - Windows
+  validations:
+    required: true
+- type: dropdown
+  id: system-type
+  attributes:
+    label: 系统类型
+    description: 你在哪个系统类型下运行的 LC ？
+    options:
+      - amd64
+      - amd32
+      - arm64
+      - arm32
+  validations:
+    required: true
+- type: dropdown
+  id: cf-version
+  attributes:
+    label: LC 版本
+    description: 你运行的是 LC 的哪个版本？
+    options:
+      - 最新的 (Latest)
+      - 0.0.1
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 补充信息
+    description: |
+      链接？参考资料？任何可以给我们提供更多关于你所遇到的问题的背景资料的东西
+
+      提示：你可以通过点击这个区域来突出显示它，然后将文件拖入，从而附上图片或其他文件。
+  validations:
+    required: false

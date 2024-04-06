@@ -1,0 +1,27 @@
+name: 新功能反馈
+description: 提交一个功能需求帮助完善这个项目
+title: "[Feat] 在这里输入你的标题"
+labels: ["enhancement"]
+assignees:
+  - teamssix
+body:
+- type: markdown
+  attributes:
+    value: |
+      感谢您花时间提交这份 issue
+- type: textarea
+  id: new-features
+  attributes:
+    label: 描述你希望增加的功能
+    value: "详细描述你希望增加的功能，并且描述为什么想要增加这个功能以及意义，描述的越完善该反馈越有可能被采纳。"
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 补充信息 (Anything else?)
+    description: |
+      链接？参考资料？任何可以给我们提供更多关于你所遇到的问题的背景资料的东西。
+
+      提示：你可以通过点击这个区域来突出显示它，然后将文件拖入，从而附上图片或其他文件。
+  validations:
+    required: false
