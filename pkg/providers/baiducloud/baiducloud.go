@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/baidubce/bce-sdk-go/auth"
 	"github.com/baidubce/bce-sdk-go/services/bos"
+	"github.com/projectdiscovery/gologger"
 	"github.com/wgpsec/lc/pkg/schema"
 	"github.com/wgpsec/lc/utils"
 )
@@ -38,6 +39,12 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	}
 	id, _ := options.GetMetadata(utils.Id)
 	sessionToken, okST := options.GetMetadata(utils.SessionToken)
+
+	if okST {
+		gologger.Debug().Msg("找到百度云访问临时访问凭证")
+	} else {
+		gologger.Debug().Msg("找到百度云访问永久访问凭证")
+	}
 
 	// bos client
 	if okST {
@@ -83,11 +90,13 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
+	gologger.Info().Msgf("获取到 %d 条百度云 BCC 信息", len(lists.Items))
 	bosProvider := &bosProvider{bosClient: p.bosClient, id: p.id, provider: p.provider}
 	buckets, err := bosProvider.GetResource(ctx)
 	if err != nil {
 		return nil, err
 	}
+	gologger.Info().Msgf("获取到 %d 条百度云 BOS 信息", len(buckets.Items))
 	finalList := schema.NewResources()
 	finalList.Merge(lists)
 	finalList.Merge(buckets)

@@ -3,6 +3,7 @@ package aliyun
 import (
 	"context"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/projectdiscovery/gologger"
 	"github.com/wgpsec/lc/pkg/schema"
 	"strings"
 )
@@ -13,9 +14,12 @@ type ossProvider struct {
 	ossClient *oss.Client
 }
 
+var ossList = schema.NewResources()
+
 func (d *ossProvider) GetResource(ctx context.Context) (*schema.Resources, error) {
-	list = schema.NewResources()
+	ossList = schema.NewResources()
 	marker := oss.Marker("")
+	gologger.Debug().Msg("正在获取阿里云 OSS 资源信息")
 	for {
 		response, err := d.ossClient.ListBuckets(oss.MaxKeys(1000), marker)
 		if err != nil {
@@ -27,7 +31,7 @@ func (d *ossProvider) GetResource(ctx context.Context) (*schema.Resources, error
 			endpointBuilder.WriteString(bucket.Name)
 			endpointBuilder.WriteString(".oss-" + bucket.Region)
 			endpointBuilder.WriteString(".aliyuncs.com")
-			list.Append(&schema.Resource{
+			ossList.Append(&schema.Resource{
 				ID:       d.id,
 				Public:   true,
 				DNSName:  endpointBuilder.String(),
@@ -38,5 +42,5 @@ func (d *ossProvider) GetResource(ctx context.Context) (*schema.Resources, error
 			break
 		}
 	}
-	return list, nil
+	return ossList, nil
 }

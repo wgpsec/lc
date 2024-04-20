@@ -14,6 +14,7 @@ import (
 type Options struct {
 	Threads        int                 // Threads 设置线程数量
 	Silent         bool                // Silent 只展示结果
+	Debug          bool                // Debug 显示详细的输出信息
 	Version        bool                // Version 返回工具版本
 	ExcludePrivate bool                // ExcludePrivate 从结果中排除私有 IP
 	Config         string              // Config 指定配置文件路径
@@ -44,6 +45,7 @@ func ParseOptions() *Options {
 		flagSet.StringVarP(&options.Output, "output", "o", "", "将结果输出到指定的文件中"),
 		flagSet.BoolVarP(&options.Silent, "silent", "s", false, "只输出结果"),
 		flagSet.BoolVarP(&options.Version, "version", "v", false, "输出工具的版本"),
+		flagSet.BoolVar(&options.Debug, "debug", false, "输出调试日志信息"),
 	)
 	_ = flagSet.Parse()
 	options.configureOutput()
@@ -59,6 +61,9 @@ func ParseOptions() *Options {
 func (options *Options) configureOutput() {
 	if options.Silent {
 		gologger.DefaultLogger.SetMaxLevel(levels.LevelSilent)
+	}
+	if options.Debug {
+		gologger.DefaultLogger.SetMaxLevel(levels.LevelDebug)
 	}
 }
 

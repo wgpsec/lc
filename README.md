@@ -35,17 +35,18 @@ LC（List Cloud）是一个多云攻击面资产梳理的工具，使用 LC 可�
 
 ### 支持列出的云服务
 
-| 序号 | 云服务商 |     服务名称      |
-| :--: | :------: | :---------------: |
-|  1   |  阿里云  |   ECS 云服务器    |
-|  2   |  阿里云  |  OSS 对象存储桶   |
-|  3   |  腾讯云  |   CVM 云服务器    |
-|  4   |  腾讯云  | LH 轻量应用服务器 |
-|  5   |  华为云  |   OBS 对象存储    |
-|  6   |  天翼云  |   OOS 对象存储    |
-|  7   |  百度云  |   BOS 对象存储    |
-|  8   |  百度云  |   BCC 云服务器    |
-|  9   |  联通云  |   OSS 对象存储    |
+| 序号 | 云服务商 |    服务名称    |
+|:--:| :------: |:----------:|
+| 1  |  阿里云  |  ECS 云服务器  |
+| 2  |  阿里云  | OSS 对象存储桶  |
+| 3  |  阿里云  |  RDS 数据库   |
+| 4  |  腾讯云  |  CVM 云服务器  |
+| 5  |  腾讯云  | LH 轻量应用服务器 |
+| 6  |  华为云  |  OBS 对象存储  |
+| 7  |  天翼云  |  OOS 对象存储  |
+| 8  |  百度云  |  BOS 对象存储  |
+| 9  |  百度云  |  BCC 云服务器  |
+| 10 |  联通云  |  OSS 对象存储  |
 
 ## 使用手册
 
@@ -80,25 +81,26 @@ Usage:
 
 Flags:
 配置:
-   -c, -config string  指定配置文件路径 (default "$HOME/.config/lc/config.yaml")
-   -t, -threads int    指定扫描的线程数量 (default 3)
+  -c, -config string  指定配置文件路径 (default "$HOME/.config/lc/config.yaml")
+  -t, -threads int    指定扫描的线程数量 (default 3)
 
 过滤:
-   -i, -id string[]        指定要使用的配置（以逗号分隔）
-   -p, -provider string[]  指定要使用的云服务商（以逗号分隔）
-   -ep, -exclude-private   从输出的结果中排除私有 IP
+  -i, -id string[]        指定要使用的配置（以逗号分隔）
+  -p, -provider string[]  指定要使用的云服务商（以逗号分隔）
+  -ep, -exclude-private   从输出的结果中排除私有 IP
 
 输出:
-   -o, -output string  将结果输出到指定的文件中
-   -s, -silent         只输出结果
-   -v, -version        输出工具的版本
+  -o, -output string  将结果输出到指定的文件中
+  -s, -silent         只输出结果
+  -v, -version        输出工具的版本
+  -debug              输出调试日志信息
 ```
 
 ## 简单上手
 
 在第一次使用时，LC 会在 `$HOME/.config/lc` 目录下创建一个 `config.yaml`，因此在第一次执行 `lc` 命令后，将您的云访问凭证填写到 `$HOME/.config/lc/config.yaml` 文件中后，就可以开始正式使用 LC 了。
 
-直接运行 `lc` 命令来列举您的云上资产
+直接运行 `lc` 命令来列举您的云上资产。
 
 ```sh
 lc
@@ -106,13 +108,13 @@ lc
 
 如果没有列举出结果，那么可能是因为本身云上没有资产，或者访问凭证的权限不足，这里我们建议为访问凭证赋予全局可读权限即可。
 
-如果要排除结果中的内网 IP，只需要加上 `-ep` 参数
+如果要排除结果中的内网 IP，只需要加上 `-ep` 参数。
 
 ```sh
 lc -ep
 ```
 
-如果想把 LC 和其他工具结合使用，例如使用 httpx 检测资产是否能从公网访问，那么可以使用下面的命令
+如果想把 LC 和其他工具结合使用，例如使用 httpx 检测资产是否能从公网访问，那么可以使用下面的命令。
 
 ```sh
 lc -ep -s | httpx -sc -title -silent

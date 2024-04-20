@@ -2,6 +2,7 @@ package ctyun
 
 import (
 	"context"
+	"github.com/projectdiscovery/gologger"
 	"github.com/teamssix/oos-go-sdk/oos"
 	"github.com/wgpsec/lc/pkg/schema"
 	"github.com/wgpsec/lc/utils"
@@ -28,6 +29,8 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	}
 	id, _ := options.GetMetadata(utils.Id)
 
+	gologger.Debug().Msg("找到天翼云访问永久访问凭证")
+
 	// oos client
 	clientOptionV4 := oos.V4Signature(true)
 	isEnableSha256 := oos.EnableSha256ForPayload(true)
@@ -46,6 +49,7 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
+	gologger.Info().Msgf("获取到 %d 条天翼云 OOS 信息", len(buckets.Items))
 	finalList := schema.NewResources()
 	finalList.Merge(buckets)
 	return finalList, nil
