@@ -2,6 +2,7 @@ package tencentcloud
 
 import (
 	"context"
+	"github.com/projectdiscovery/gologger"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
@@ -36,6 +37,12 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	}
 	id, _ := options.GetMetadata(utils.Id)
 	sessionToken, okST := options.GetMetadata(utils.SessionToken)
+
+	if okST {
+		gologger.Debug().Msg("找到腾讯云访问临时访问凭证")
+	} else {
+		gologger.Debug().Msg("找到腾讯云访问永久访问凭证")
+	}
 
 	if okST {
 		credential = common.NewTokenCredential(accessKeyID, accessKeySecret, sessionToken)
@@ -83,11 +90,15 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
+	gologger.Info().Msgf("获取到 %d 条腾讯云 CVM 信息", len(cvmList.Items))
+
 	lhProvider := &instanceProvider{id: p.id, provider: p.provider, cvmRegions: p.cvmRegions, lhRegions: p.lhRegions, credential: p.credential}
 	lhList, err := lhProvider.GetLHResource(ctx)
 	if err != nil {
 		return nil, err
 	}
+	gologger.Info().Msgf("获取到 %d 条腾讯云 LH 信息", len(lhList.Items))
+
 	finalList := schema.NewResources()
 	finalList.Merge(cvmList)
 	finalList.Merge(lhList)

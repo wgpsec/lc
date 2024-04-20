@@ -81,8 +81,8 @@ func (d *instanceProvider) describeInstances(ch <-chan string, wg *sync.WaitGrou
 				continue
 			}
 		}
+		listArgs := &api.ListInstanceArgs{}
 		for {
-			listArgs := &api.ListInstanceArgs{}
 			response, err := bccClient.ListInstances(listArgs)
 			if err != nil {
 				break

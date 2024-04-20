@@ -3,6 +3,7 @@ package huaweicloud
 import (
 	"context"
 	"github.com/huaweicloud/huaweicloud-sdk-go-obs/obs"
+	"github.com/projectdiscovery/gologger"
 	"github.com/wgpsec/lc/pkg/schema"
 	"github.com/wgpsec/lc/utils"
 )
@@ -30,6 +31,12 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	id, _ := options.GetMetadata(utils.Id)
 	sessionToken, okST := options.GetMetadata(utils.SessionToken)
 
+	if okST {
+		gologger.Debug().Msg("找到华为云访问临时访问凭证")
+	} else {
+		gologger.Debug().Msg("找到华为云访问永久访问凭证")
+	}
+
 	// obs client
 	if okST {
 		obsClient, err = obs.New(accessKeyID, accessKeySecret, "https://obs."+region+".myhuaweicloud.com", obs.WithSecurityToken(sessionToken))
@@ -50,6 +57,7 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
+	gologger.Info().Msgf("获取到 %d 条华为云 OBS 信息", len(buckets.Items))
 	finalList := schema.NewResources()
 	finalList.Merge(buckets)
 	return finalList, nil

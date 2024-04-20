@@ -5,20 +5,21 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/projectdiscovery/gologger"
 	"github.com/wgpsec/lc/pkg/schema"
 	"sync"
 )
 
 type instanceProvider struct {
-	id       string
-	provider string
-	config   providerConfig
-	regions  *ecs.DescribeRegionsResponse
+	id         string
+	provider   string
+	config     providerConfig
+	ecsRegions *ecs.DescribeRegionsResponse
 }
 
-var list = schema.NewResources()
+var ecsList = schema.NewResources()
 
-func (d *instanceProvider) GetResource(ctx context.Context) (*schema.Resources, error) {
+func (d *instanceProvider) GetEcsResource(ctx context.Context) (*schema.Resources, error) {
 	var (
 		threads int
 		err     error
@@ -27,7 +28,7 @@ func (d *instanceProvider) GetResource(ctx context.Context) (*schema.Resources, 
 	)
 	threads = schema.GetThreads()
 
-	for _, region := range d.regions.Regions.Region {
+	for _, region := range d.ecsRegions.Regions.Region {
 		regions = append(regions, region.RegionId)
 	}
 
@@ -35,7 +36,7 @@ func (d *instanceProvider) GetResource(ctx context.Context) (*schema.Resources, 
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func() {
-			err = d.describeInstances(taskCh, &wg)
+			err = d.describeEcsInstances(taskCh, &wg)
 			if err != nil {
 				return
 			}
@@ -46,10 +47,10 @@ func (d *instanceProvider) GetResource(ctx context.Context) (*schema.Resources, 
 	}
 	close(taskCh)
 	wg.Wait()
-	return list, nil
+	return ecsList, nil
 }
 
-func (d *instanceProvider) describeInstances(ch <-chan string, wg *sync.WaitGroup) error {
+func (d *instanceProvider) describeEcsInstances(ch <-chan string, wg *sync.WaitGroup) error {
 	wg.Done()
 	var (
 		err       error
@@ -71,11 +72,15 @@ func (d *instanceProvider) describeInstances(ch <-chan string, wg *sync.WaitGrou
 				continue
 			}
 		}
+		gologger.Debug().Msgf("正在获取 %s 区域下的阿里云 ECS 资源信息", region)
+		request := ecs.CreateDescribeInstancesRequest()
 		for {
-			request := ecs.CreateDescribeInstancesRequest()
 			response, err = ecsClient.DescribeInstances(request)
 			if err != nil {
 				break
+			}
+			if len(response.Instances.Instance) > 0 {
+				gologger.Warning().Msgf("在 %s 区域下获取到 %d 条 ECS 资源", region, len(response.Instances.Instance))
 			}
 			for _, instance := range response.Instances.Instance {
 				var (
@@ -89,7 +94,7 @@ func (d *instanceProvider) describeInstances(ch <-chan string, wg *sync.WaitGrou
 					privateIPv4 = instance.NetworkInterfaces.NetworkInterface[0].PrivateIpSets.PrivateIpSet[0].PrivateIpAddress
 				}
 				for _, v := range ipv4 {
-					list.Append(&schema.Resource{
+					ecsList.Append(&schema.Resource{
 						ID:          d.id,
 						Provider:    d.provider,
 						PublicIPv4:  v,
@@ -99,8 +104,10 @@ func (d *instanceProvider) describeInstances(ch <-chan string, wg *sync.WaitGrou
 				}
 			}
 			if response.NextToken == "" {
+				gologger.Debug().Msgf("NextToken 为空，已终止获取")
 				break
 			}
+			gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
 			request.NextToken = response.NextToken
 		}
 	}

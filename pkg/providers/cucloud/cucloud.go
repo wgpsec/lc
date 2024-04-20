@@ -2,6 +2,7 @@ package cucloud
 
 import (
 	"context"
+	"github.com/projectdiscovery/gologger"
 	"github.com/wgpsec/lc/pkg/schema"
 	"github.com/wgpsec/lc/utils"
 )
@@ -30,6 +31,8 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	id, _ := options.GetMetadata(utils.Id)
 	sessionToken, _ := options.GetMetadata(utils.SessionToken)
 
+	gologger.Debug().Msg("找到联通云访问永久访问凭证")
+
 	config := providerConfig{
 		accessKeyID:     accessKeyID,
 		accessKeySecret: accessKeySecret,
@@ -52,6 +55,7 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
+	gologger.Info().Msgf("获取到 %d 条联通云 OSS 信息", len(buckets.Items))
 	finalList := schema.NewResources()
 	finalList.Merge(buckets)
 	return finalList, nil
