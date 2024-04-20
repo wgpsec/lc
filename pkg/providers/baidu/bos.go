@@ -1,28 +1,31 @@
-package ctyun
+package baidu
 
 import (
 	"context"
-	"github.com/teamssix/oos-go-sdk/oos"
+	"github.com/baidubce/bce-sdk-go/services/bos"
+	"github.com/projectdiscovery/gologger"
 	"github.com/wgpsec/lc/pkg/schema"
 	"strings"
 )
 
-type obsProvider struct {
+type bosProvider struct {
 	id        string
 	provider  string
-	oosClient *oos.Client
+	bosClient *bos.Client
 }
 
-func (d *obsProvider) GetResource(ctx context.Context) (*schema.Resources, error) {
+func (d *bosProvider) GetResource(ctx context.Context) (*schema.Resources, error) {
 	var list = schema.NewResources()
-	response, err := d.oosClient.ListBuckets()
+	gologger.Debug().Msg("正在获取百度云 BOS 资源信息")
+	response, err := d.bosClient.ListBuckets()
 	if err != nil {
 		return nil, err
 	}
 	for _, bucket := range response.Buckets {
 		endpointBuilder := &strings.Builder{}
 		endpointBuilder.WriteString(bucket.Name)
-		endpointBuilder.WriteString(".oos-cn.ctyunapi.cn")
+		endpointBuilder.WriteString("." + bucket.Location)
+		endpointBuilder.WriteString(".bcebos.com")
 		list.Append(&schema.Resource{
 			ID:       d.id,
 			Public:   true,

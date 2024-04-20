@@ -1,23 +1,22 @@
-package ctyun
+package qiniu
 
 import (
 	"context"
 	"github.com/projectdiscovery/gologger"
-	"github.com/teamssix/oos-go-sdk/oos"
+	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/wgpsec/lc/pkg/schema"
 	"github.com/wgpsec/lc/utils"
 )
 
 type Provider struct {
-	id        string
-	provider  string
-	oosClient *oos.Client
+	id         string
+	provider   string
+	kodoClient *auth.Credentials
 }
 
 func New(options schema.OptionBlock) (*Provider, error) {
 	var (
-		err       error
-		oosClient *oos.Client
+		kodoClient *auth.Credentials
 	)
 	accessKeyID, ok := options.GetMetadata(utils.AccessKey)
 	if !ok {
@@ -29,27 +28,22 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	}
 	id, _ := options.GetMetadata(utils.Id)
 
-	gologger.Debug().Msg("找到天翼云访问永久访问凭证")
+	gologger.Debug().Msg("找到七牛云访问永久访问凭证")
 
-	// oos client
-	clientOptionV4 := oos.V4Signature(true)
-	isEnableSha256 := oos.EnableSha256ForPayload(true)
-	oosClient, err = oos.New("https://oos-cn.ctyunapi.cn", accessKeyID, accessKeySecret, clientOptionV4, isEnableSha256)
-	if err != nil {
-		return nil, err
-	}
+	// kodo client
+	kodoClient = auth.New(accessKeyID, accessKeySecret)
 
-	return &Provider{provider: utils.Ctyun, id: id, oosClient: oosClient}, nil
+	return &Provider{provider: utils.QiNiu, id: id, kodoClient: kodoClient}, nil
 }
 
 func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	var err error
-	oosProvider := &obsProvider{oosClient: p.oosClient, id: p.id, provider: p.provider}
-	buckets, err := oosProvider.GetResource(ctx)
+	kodoProvider := &kodoProvider{kodoClient: p.kodoClient, id: p.id, provider: p.provider}
+	buckets, err := kodoProvider.GetResource(ctx)
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条天翼云 OOS 信息", len(buckets.Items))
+	gologger.Info().Msgf("获取到 %d 条七牛云 Kodo 对象存储信息", len(buckets.Items))
 	finalList := schema.NewResources()
 	finalList.Merge(buckets)
 	return finalList, nil

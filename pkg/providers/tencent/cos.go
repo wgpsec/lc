@@ -1,4 +1,4 @@
-package tencentcloud
+package tencent
 
 import (
 	"context"

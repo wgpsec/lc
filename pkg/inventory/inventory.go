@@ -3,11 +3,12 @@ package inventory
 import (
 	"fmt"
 	"github.com/wgpsec/lc/pkg/providers/aliyun"
-	"github.com/wgpsec/lc/pkg/providers/baiducloud"
-	"github.com/wgpsec/lc/pkg/providers/ctyun"
-	"github.com/wgpsec/lc/pkg/providers/cucloud"
-	"github.com/wgpsec/lc/pkg/providers/huaweicloud"
-	"github.com/wgpsec/lc/pkg/providers/tencentcloud"
+	"github.com/wgpsec/lc/pkg/providers/baidu"
+	"github.com/wgpsec/lc/pkg/providers/huawei"
+	"github.com/wgpsec/lc/pkg/providers/liantong"
+	"github.com/wgpsec/lc/pkg/providers/qiniu"
+	"github.com/wgpsec/lc/pkg/providers/tencent"
+	"github.com/wgpsec/lc/pkg/providers/tianyi"
 	"github.com/wgpsec/lc/pkg/schema"
 	"github.com/wgpsec/lc/utils"
 )
@@ -37,16 +38,18 @@ func nameToProvider(value string, block schema.OptionBlock) (schema.Provider, er
 	switch value {
 	case utils.Aliyun:
 		return aliyun.New(block)
-	case utils.TencentCloud:
-		return tencentcloud.New(block)
-	case utils.HuaweiCloud:
-		return huaweicloud.New(block)
-	case utils.Ctyun:
-		return ctyun.New(block)
-	case utils.BaiduCloud:
-		return baiducloud.New(block)
-	case utils.CuCloud:
-		return cucloud.New(block)
+	case utils.Tencent:
+		return tencent.New(block)
+	case utils.Huawei:
+		return huawei.New(block)
+	case utils.TianYi:
+		return tianyi.New(block)
+	case utils.Baidu:
+		return baidu.New(block)
+	case utils.LianTong:
+		return liantong.New(block)
+	case utils.QiNiu:
+		return qiniu.New(block)
 	default:
 		return nil, fmt.Errorf("发现无效的云服务商名: %s", value)
 	}

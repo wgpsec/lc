@@ -1,4 +1,4 @@
-package baiducloud
+package baidu
 
 import (
 	"context"
@@ -80,7 +80,7 @@ func New(options schema.OptionBlock) (*Provider, error) {
 		okST:            okST,
 	}
 
-	return &Provider{provider: utils.BaiduCloud, id: id, bosClient: bosClient, config: config}, nil
+	return &Provider{provider: utils.Baidu, id: id, bosClient: bosClient, config: config}, nil
 }
 
 func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
