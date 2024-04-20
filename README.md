@@ -30,7 +30,7 @@ LC（List Cloud）是一个多云攻击面资产梳理的工具，使用 LC 可�
 
 运行截图：
 
-<div align=center><img width="500" src="static/list-cloud-run.png"></div>
+<div align=center><img width="1000" src="static/list-cloud-run.jpg"></div>
 
 
 ### 支持列出的云服务
@@ -58,9 +58,18 @@ LC（List Cloud）是一个多云攻击面资产梳理的工具，使用 LC 可�
 
 ### 使用 brew 安装
 
-```sh
+安装
+
+```bash
 brew tap wgpsec/tap
 brew install wgpsec/tap/lc
+```
+
+更新
+
+```bash
+brew update
+brew upgrade lc
 ```
 
 ### 下载二进制文件
