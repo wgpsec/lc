@@ -9,10 +9,11 @@ const (
 )
 
 const (
-	Aliyun       = "aliyun"
-	TencentCloud = "tencent cloud"
-	HuaweiCloud  = "huawei cloud"
-	Ctyun        = "ctyun"
-	BaiduCloud   = "baidu cloud"
-	CuCloud      = "cu cloud"
+	Aliyun   = "aliyun"
+	Tencent  = "tencent"
+	Huawei   = "huawei"
+	TianYi   = "tianyi"
+	Baidu    = "baidu"
+	LianTong = "liantong"
+	QiNiu    = "qiniu"
 )

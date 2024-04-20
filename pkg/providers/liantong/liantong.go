@@ -1,4 +1,4 @@
-package cucloud
+package liantong
 
 import (
 	"context"
@@ -38,7 +38,7 @@ func New(options schema.OptionBlock) (*Provider, error) {
 		accessKeySecret: accessKeySecret,
 		sessionToken:    sessionToken,
 	}
-	return &Provider{id: id, provider: utils.CuCloud, config: config}, nil
+	return &Provider{id: id, provider: utils.LianTong, config: config}, nil
 }
 
 func (p *Provider) Name() string {

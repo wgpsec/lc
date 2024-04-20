@@ -1,4 +1,4 @@
-package tencentcloud
+package tencent
 
 import (
 	"context"
@@ -84,7 +84,7 @@ func New(options schema.OptionBlock) (*Provider, error) {
 		},
 	})
 
-	return &Provider{id: id, provider: utils.TencentCloud, credential: credential, cvmRegions: cvmRegions, lhRegions: lhRegions, cosClient: cosClient}, nil
+	return &Provider{id: id, provider: utils.Tencent, credential: credential, cvmRegions: cvmRegions, lhRegions: lhRegions, cosClient: cosClient}, nil
 }
 
 func (p *Provider) Name() string {

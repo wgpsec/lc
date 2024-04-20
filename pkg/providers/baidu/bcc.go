@@ -1,4 +1,4 @@
-package baiducloud
+package baidu
 
 import (
 	"context"
@@ -61,7 +61,6 @@ func (d *instanceProvider) describeInstances(ch <-chan string, wg *sync.WaitGrou
 		bccClient *bcc.Client
 	)
 	for endpoint := range ch {
-
 		if d.config.okST {
 			bccClient, err = bcc.NewClient(d.config.accessKeyID, d.config.accessKeySecret, "")
 			if err != nil {

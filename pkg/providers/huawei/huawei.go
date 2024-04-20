@@ -1,4 +1,4 @@
-package huaweicloud
+package huawei
 
 import (
 	"context"
@@ -47,7 +47,7 @@ func New(options schema.OptionBlock) (*Provider, error) {
 		return nil, err
 	}
 
-	return &Provider{provider: utils.HuaweiCloud, id: id, obsClient: obsClient}, nil
+	return &Provider{provider: utils.Huawei, id: id, obsClient: obsClient}, nil
 }
 
 func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {

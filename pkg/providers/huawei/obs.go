@@ -1,29 +1,29 @@
-package baiducloud
+package huawei
 
 import (
 	"context"
-	"github.com/baidubce/bce-sdk-go/services/bos"
+	"github.com/huaweicloud/huaweicloud-sdk-go-obs/obs"
 	"github.com/wgpsec/lc/pkg/schema"
 	"strings"
 )
 
-type bosProvider struct {
+type obsProvider struct {
 	id        string
 	provider  string
-	bosClient *bos.Client
+	obsClient *obs.ObsClient
 }
 
-func (d *bosProvider) GetResource(ctx context.Context) (*schema.Resources, error) {
+func (d *obsProvider) GetResource(ctx context.Context) (*schema.Resources, error) {
 	var list = schema.NewResources()
-	response, err := d.bosClient.ListBuckets()
+	response, err := d.obsClient.ListBuckets(&obs.ListBucketsInput{QueryLocation: true})
 	if err != nil {
 		return nil, err
 	}
 	for _, bucket := range response.Buckets {
 		endpointBuilder := &strings.Builder{}
 		endpointBuilder.WriteString(bucket.Name)
-		endpointBuilder.WriteString("." + bucket.Location)
-		endpointBuilder.WriteString(".bcebos.com")
+		endpointBuilder.WriteString(".obs." + bucket.Location)
+		endpointBuilder.WriteString(".myhuaweicloud.com")
 		list.Append(&schema.Resource{
 			ID:       d.id,
 			Public:   true,
