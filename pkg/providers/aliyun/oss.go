@@ -14,10 +14,8 @@ type ossProvider struct {
 	ossClient *oss.Client
 }
 
-var ossList = schema.NewResources()
-
 func (d *ossProvider) GetResource(ctx context.Context) (*schema.Resources, error) {
-	ossList = schema.NewResources()
+	ossList := schema.NewResources()
 	marker := oss.Marker("")
 	gologger.Debug().Msg("正在获取阿里云 OSS 资源信息")
 	for {

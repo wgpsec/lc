@@ -8,14 +8,17 @@ import (
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 	lh "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/lighthouse/v20200324"
+	cos "github.com/tencentyun/cos-go-sdk-v5"
 	"github.com/wgpsec/lc/pkg/schema"
 	"github.com/wgpsec/lc/utils"
+	"net/http"
 )
 
 type Provider struct {
 	id         string
 	provider   string
 	credential *common.Credential
+	cosClient  *cos.Client
 	cvmRegions []*cvm.RegionInfo
 	lhRegions  []*lh.RegionInfo
 }
@@ -73,7 +76,15 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	}
 	lhRegions = lhResponse.Response.RegionSet
 
-	return &Provider{id: id, provider: utils.TencentCloud, credential: credential, cvmRegions: cvmRegions, lhRegions: lhRegions}, nil
+	// cos client
+	cosClient := cos.NewClient(nil, &http.Client{
+		Transport: &cos.AuthorizationTransport{
+			SecretID:  accessKeyID,
+			SecretKey: accessKeySecret,
+		},
+	})
+
+	return &Provider{id: id, provider: utils.TencentCloud, credential: credential, cvmRegions: cvmRegions, lhRegions: lhRegions, cosClient: cosClient}, nil
 }
 
 func (p *Provider) Name() string {
@@ -99,8 +110,16 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	}
 	gologger.Info().Msgf("获取到 %d 条腾讯云 LH 信息", len(lhList.Items))
 
+	cosProvider := &cosProvider{provider: p.provider, id: p.id, cosClient: p.cosClient}
+	cosList, err := cosProvider.GetResource(ctx)
+	if err != nil {
+		return nil, err
+	}
+	gologger.Info().Msgf("获取到 %d 条腾讯云 COS 信息", len(cosList.Items))
+
 	finalList := schema.NewResources()
 	finalList.Merge(cvmList)
 	finalList.Merge(lhList)
+	finalList.Merge(cosList)
 	return finalList, nil
 }

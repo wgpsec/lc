@@ -133,6 +133,7 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 		return nil, err
 	}
 	gologger.Info().Msgf("获取到 %d 条阿里云 RDS 信息", len(rdsList.Items))
+
 	ossProvider := &ossProvider{ossClient: p.ossClient, id: p.id, provider: p.provider}
 	buckets, err := ossProvider.GetResource(ctx)
 	if err != nil {
