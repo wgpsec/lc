@@ -101,21 +101,21 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条腾讯云 CVM 信息", len(cvmList.Items))
+	gologger.Info().Msgf("获取到 %d 条腾讯云 CVM 信息", len(cvmList.GetItems()))
 
 	lhProvider := &instanceProvider{id: p.id, provider: p.provider, cvmRegions: p.cvmRegions, lhRegions: p.lhRegions, credential: p.credential}
 	lhList, err := lhProvider.GetLHResource(ctx)
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条腾讯云 LH 信息", len(lhList.Items))
+	gologger.Info().Msgf("获取到 %d 条腾讯云 LH 信息", len(lhList.GetItems()))
 
 	cosProvider := &cosProvider{provider: p.provider, id: p.id, cosClient: p.cosClient}
 	cosList, err := cosProvider.GetResource(ctx)
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条腾讯云 COS 信息", len(cosList.Items))
+	gologger.Info().Msgf("获取到 %d 条腾讯云 COS 信息", len(cosList.GetItems()))
 
 	finalList := schema.NewResources()
 	finalList.Merge(cvmList)

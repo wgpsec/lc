@@ -90,13 +90,13 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条百度云 BCC 信息", len(lists.Items))
+	gologger.Info().Msgf("获取到 %d 条百度云 BCC 信息", len(lists.GetItems()))
 	bosProvider := &bosProvider{bosClient: p.bosClient, id: p.id, provider: p.provider}
 	buckets, err := bosProvider.GetResource(ctx)
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条百度云 BOS 信息", len(buckets.Items))
+	gologger.Info().Msgf("获取到 %d 条百度云 BOS 信息", len(buckets.GetItems()))
 	finalList := schema.NewResources()
 	finalList.Merge(lists)
 	finalList.Merge(buckets)

@@ -123,7 +123,7 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	var err error
 	ecsProvider := &instanceProvider{id: p.id, provider: p.provider, ecsRegions: p.ecsRegions, config: p.config}
 	ecsList, err := ecsProvider.GetEcsResource(ctx)
-	gologger.Info().Msgf("获取到 %d 条阿里云 ECS 信息", len(ecsList.Items))
+	gologger.Info().Msgf("获取到 %d 条阿里云 ECS 信息", len(ecsList.GetItems()))
 	if err != nil {
 		return nil, err
 	}
@@ -132,14 +132,14 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条阿里云 RDS 信息", len(rdsList.Items))
+	gologger.Info().Msgf("获取到 %d 条阿里云 RDS 信息", len(rdsList.GetItems()))
 
 	ossProvider := &ossProvider{ossClient: p.ossClient, id: p.id, provider: p.provider}
 	buckets, err := ossProvider.GetResource(ctx)
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条阿里云 OSS 信息", len(buckets.Items))
+	gologger.Info().Msgf("获取到 %d 条阿里云 OSS 信息", len(buckets.GetItems()))
 
 	finalList := schema.NewResources()
 	finalList.Merge(ecsList)

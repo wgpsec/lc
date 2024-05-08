@@ -55,7 +55,7 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条联通云 OSS 信息", len(buckets.Items))
+	gologger.Info().Msgf("获取到 %d 条联通云 OSS 信息", len(buckets.GetItems()))
 	finalList := schema.NewResources()
 	finalList.Merge(buckets)
 	return finalList, nil

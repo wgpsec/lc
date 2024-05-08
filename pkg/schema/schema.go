@@ -14,7 +14,19 @@ var validator *validate.Validator
 var Threads int
 
 type Resources struct {
-	Items []*Resource
+	items []*Resource
+	sync.RWMutex
+}
+
+func (r *Resources) AppendItem(item *Resource) {
+	r.Lock()
+	defer r.Unlock()
+	r.items = append(r.items, item)
+}
+func (r *Resources) GetItems() []*Resource {
+	r.RLock()
+	defer r.RUnlock()
+	return r.items
 }
 
 type Provider interface {
@@ -80,7 +92,7 @@ func (r *Resources) appendResourceWithTypeAndMeta(resourceType validate.Resource
 	default:
 		return
 	}
-	r.Items = append(r.Items, resource)
+	r.AppendItem(resource)
 }
 
 func (r *Resources) Append(resource *Resource) {
@@ -92,7 +104,7 @@ func (r *Resources) Merge(resources *Resources) {
 		return
 	}
 	mergeUniqueMap := &sync.Map{}
-	for _, item := range resources.Items {
+	for _, item := range resources.GetItems() {
 		r.appendResource(item, mergeUniqueMap)
 	}
 }
@@ -116,7 +128,7 @@ func (o OptionBlock) GetMetadata(key string) (string, bool) {
 // Other
 
 func NewResources() *Resources {
-	return &Resources{Items: make([]*Resource, 0)}
+	return &Resources{items: make([]*Resource, 0)}
 }
 
 func SetThreads(threads int) {

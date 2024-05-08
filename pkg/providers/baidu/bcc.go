@@ -36,7 +36,7 @@ func (d *instanceProvider) GetResource(ctx context.Context) (*schema.Resources, 
 	}
 	threads = schema.GetThreads()
 
-	taskCh := make(chan string)
+	taskCh := make(chan string, threads)
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func() {
@@ -55,7 +55,7 @@ func (d *instanceProvider) GetResource(ctx context.Context) (*schema.Resources, 
 }
 
 func (d *instanceProvider) describeInstances(ch <-chan string, wg *sync.WaitGroup) error {
-	wg.Done()
+	defer wg.Done()
 	var (
 		err       error
 		bccClient *bcc.Client
