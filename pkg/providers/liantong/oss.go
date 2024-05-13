@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-type s3Provider struct {
+type ossProvider struct {
 	id       string
 	provider string
 	config   providerConfig
@@ -24,7 +24,7 @@ type regions struct {
 
 var list = schema.NewResources()
 
-func (d *s3Provider) GetResource(ctx context.Context) (*schema.Resources, error) {
+func (d *ossProvider) GetResource(ctx context.Context) (*schema.Resources, error) {
 	var (
 		threads int
 		err     error
@@ -68,7 +68,7 @@ func (d *s3Provider) GetResource(ctx context.Context) (*schema.Resources, error)
 
 }
 
-func (d *s3Provider) listBuckets(ch <-chan regions, wg *sync.WaitGroup) error {
+func (d *ossProvider) listBuckets(ch <-chan regions, wg *sync.WaitGroup) error {
 	defer wg.Done()
 	var err error
 	for region := range ch {

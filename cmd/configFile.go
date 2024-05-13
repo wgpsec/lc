@@ -68,4 +68,12 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 #   id: qiniu_cloud_default
 #   access_key: 
 #   secret_key:
+
+# # 移动云
+# # 访问凭证获取地址：https://console.ecloud.10086.cn/api/page/eos-console-web/CIDC-RP-00/eos/key
+# - provider: yidong
+#   id: yidong_cloud_default
+#   access_key: 
+#   secret_key: 
+#   session_token: 
 `
