@@ -32,7 +32,7 @@ func (d *instanceProvider) GetEcsResource(ctx context.Context) (*schema.Resource
 		regions = append(regions, region.RegionId)
 	}
 
-	taskCh := make(chan string)
+	taskCh := make(chan string, threads)
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func() {
@@ -51,7 +51,7 @@ func (d *instanceProvider) GetEcsResource(ctx context.Context) (*schema.Resource
 }
 
 func (d *instanceProvider) describeEcsInstances(ch <-chan string, wg *sync.WaitGroup) error {
-	wg.Done()
+	defer wg.Done()
 	var (
 		err       error
 		ecsClient *ecs.Client

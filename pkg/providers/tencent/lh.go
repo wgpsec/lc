@@ -23,7 +23,7 @@ func (d *instanceProvider) GetLHResource(ctx context.Context) (*schema.Resources
 	for _, region := range d.lhRegions {
 		regions = append(regions, *region.Region)
 	}
-	taskCh := make(chan string)
+	taskCh := make(chan string, threads)
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func() {
@@ -42,7 +42,7 @@ func (d *instanceProvider) GetLHResource(ctx context.Context) (*schema.Resources
 }
 
 func (d *instanceProvider) describeLHInstances(ch <-chan string, wg *sync.WaitGroup) error {
-	wg.Done()
+	defer wg.Done()
 	var (
 		err      error
 		lhClient *lh.Client

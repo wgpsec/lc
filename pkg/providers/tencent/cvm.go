@@ -33,7 +33,7 @@ func (d *instanceProvider) GetCVMResource(ctx context.Context) (*schema.Resource
 		regions = append(regions, *region.Region)
 	}
 
-	taskCh := make(chan string)
+	taskCh := make(chan string, threads)
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func() {
@@ -52,7 +52,7 @@ func (d *instanceProvider) GetCVMResource(ctx context.Context) (*schema.Resource
 }
 
 func (d *instanceProvider) describeCVMInstances(ch <-chan string, wg *sync.WaitGroup) error {
-	wg.Done()
+	defer wg.Done()
 	var (
 		err       error
 		cvmClient *cvm.Client
@@ -63,7 +63,6 @@ func (d *instanceProvider) describeCVMInstances(ch <-chan string, wg *sync.WaitG
 		cpf.HttpProfile.Endpoint = "cvm.tencentcloudapi.com"
 		cvmClient, err = cvm.NewClient(d.credential, region, cpf)
 		if err != nil {
-			wg.Done()
 			continue
 		}
 		request := cvm.NewDescribeInstancesRequest()

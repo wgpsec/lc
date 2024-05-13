@@ -74,7 +74,7 @@ func (r *Runner) Enumerate() {
 			continue
 		}
 		var Count int
-		for _, instance := range instances.Items {
+		for _, instance := range instances.GetItems() {
 			builder.Reset()
 			if instance.DNSName != "" {
 				Count++
