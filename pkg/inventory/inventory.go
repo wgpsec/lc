@@ -9,6 +9,7 @@ import (
 	"github.com/wgpsec/lc/pkg/providers/qiniu"
 	"github.com/wgpsec/lc/pkg/providers/tencent"
 	"github.com/wgpsec/lc/pkg/providers/tianyi"
+	"github.com/wgpsec/lc/pkg/providers/yidong"
 	"github.com/wgpsec/lc/pkg/schema"
 	"github.com/wgpsec/lc/utils"
 )
@@ -50,6 +51,8 @@ func nameToProvider(value string, block schema.OptionBlock) (schema.Provider, er
 		return liantong.New(block)
 	case utils.QiNiu:
 		return qiniu.New(block)
+	case utils.YiDong:
+		return yidong.New(block)
 	default:
 		return nil, fmt.Errorf("发现无效的云服务商名: %s", value)
 	}

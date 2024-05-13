@@ -16,4 +16,5 @@ const (
 	Baidu    = "baidu"
 	LianTong = "liantong"
 	QiNiu    = "qiniu"
+	YiDong   = "yidong"
 )

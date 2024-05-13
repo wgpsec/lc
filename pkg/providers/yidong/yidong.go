@@ -1,4 +1,4 @@
-package liantong
+package yidong
 
 import (
 	"context"
@@ -30,10 +30,11 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	}
 	id, _ := options.GetMetadata(utils.Id)
 	sessionToken, stsOk := options.GetMetadata(utils.SessionToken)
+
 	if stsOk {
-		gologger.Debug().Msg("找到联通云临时访问凭证")
+		gologger.Debug().Msg("找到移动云临时访问凭证")
 	} else {
-		gologger.Debug().Msg("找到联通云永久访问凭证")
+		gologger.Debug().Msg("找到移动云永久访问凭证")
 	}
 
 	config := providerConfig{
@@ -41,7 +42,7 @@ func New(options schema.OptionBlock) (*Provider, error) {
 		accessKeySecret: accessKeySecret,
 		sessionToken:    sessionToken,
 	}
-	return &Provider{id: id, provider: utils.LianTong, config: config}, nil
+	return &Provider{id: id, provider: utils.YiDong, config: config}, nil
 }
 
 func (p *Provider) Name() string {
@@ -53,12 +54,12 @@ func (p *Provider) ID() string {
 }
 
 func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
-	ossProvider := &ossProvider{config: p.config, id: p.id, provider: p.provider}
-	buckets, err := ossProvider.GetResource(ctx)
+	eosProvider := &eosProvider{config: p.config, id: p.id, provider: p.provider}
+	buckets, err := eosProvider.GetResource(ctx)
 	if err != nil {
 		return nil, err
 	}
-	gologger.Info().Msgf("获取到 %d 条联通云 OSS 信息", len(buckets.GetItems()))
+	gologger.Info().Msgf("获取到 %d 条移动云 EOS 信息", len(buckets.GetItems()))
 	finalList := schema.NewResources()
 	finalList.Merge(buckets)
 	return finalList, nil
