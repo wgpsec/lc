@@ -49,7 +49,7 @@ func (d *s3Provider) GetResource(ctx context.Context) (*schema.Resources, error)
 	}
 	threads = schema.GetThreads()
 
-	taskCh := make(chan regions)
+	taskCh := make(chan regions, threads)
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func() {
@@ -69,7 +69,7 @@ func (d *s3Provider) GetResource(ctx context.Context) (*schema.Resources, error)
 }
 
 func (d *s3Provider) listBuckets(ch <-chan regions, wg *sync.WaitGroup) error {
-	wg.Done()
+	defer wg.Done()
 	var err error
 	for region := range ch {
 		config := aws.NewConfig()
