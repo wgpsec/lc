@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.0.1](https://github.com/wgpsec/lc/releases/tag/v1.0.1) 2024.5.15
+
+* 支持列出移动云 EOS 对象存储服务
+* 修复了一个 Bug
+
 ## [v1.0.0](https://github.com/wgpsec/lc/releases/tag/v1.0.0) 2024.4.20
 
 * 支持列出阿里云 RDS 数据库服务
