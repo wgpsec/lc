@@ -139,7 +139,7 @@ lc -ep -s | httpx -sc -title -silent
 
 ## 贡献
 
-十分欢迎各位师傅为 LC 项目贡献代码，如果您想为该项目贡献代码，请参见贡献说明：[CONTRIBUTING](https://github.com/wgpsec/lc/blob/main/CONTRIBUTING.md)
+十分欢迎各位师傅为 LC 项目贡献代码，如果您想为该项目贡献代码，请参见贡献说明：[CONTRIBUTING](https://github.com/wgpsec/lc/blob/master/CONTRIBUTING.md)
 
 ## 致谢
 
