@@ -7,6 +7,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/rds"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/sts"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/projectdiscovery/gologger"
 	"github.com/wgpsec/lc/pkg/schema"
@@ -20,6 +21,8 @@ type Provider struct {
 	ossClient  *oss.Client
 	ecsRegions *ecs.DescribeRegionsResponse
 	rdsRegions *rds.DescribeRegionsResponse
+	fcRegions  []FcRegion
+	identity   *sts.GetCallerIdentityResponse
 }
 
 type providerConfig struct {
@@ -34,6 +37,7 @@ func New(options schema.OptionBlock) (*Provider, error) {
 		region    = "cn-beijing"
 		ecsClient *ecs.Client
 		rdsClient *rds.Client
+		stsClient *sts.Client
 		err       error
 	)
 	accessKeyID, ok := options.GetMetadata(utils.AccessKey)
@@ -58,6 +62,27 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	} else {
 		gologger.Debug().Msg("找到阿里云访问永久访问凭证")
 	}
+
+	// sts GetCallerIdentity
+	stsConfig := sdk.NewConfig()
+	if okST {
+		credential := credentials.NewStsTokenCredential(accessKeyID, accessKeySecret, sessionToken)
+		stsClient, err = sts.NewClientWithOptions(region, stsConfig, credential)
+	} else {
+		credential := credentials.NewAccessKeyCredential(accessKeyID, accessKeySecret)
+		stsClient, err = sts.NewClientWithOptions(region, stsConfig, credential)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	stsReq := sts.CreateGetCallerIdentityRequest()
+	stsReq.SetScheme("HTTPS")
+	identity, err := stsClient.GetCallerIdentity(stsReq)
+	if err != nil {
+		return nil, err
+	}
+	gologger.Debug().Msg("阿里云 STS 信息获取成功")
 
 	// oss client
 	ossClient, err := oss.New(fmt.Sprintf("oss-%s.aliyuncs.com", region), accessKeyID, accessKeySecret)
@@ -116,7 +141,17 @@ func New(options schema.OptionBlock) (*Provider, error) {
 	}
 	gologger.Debug().Msg("阿里云 RDS 区域信息获取成功")
 
-	return &Provider{provider: utils.Aliyun, id: id, ossClient: ossClient, ecsRegions: ecsRegions, rdsRegions: rdsRegions, config: config}, nil
+	// fc regions
+	fcRegions, err := GetFcRegions()
+	if err != nil {
+		return nil, err
+	}
+	gologger.Debug().Msgf("阿里云 FC 区域信息获取成功, 共 %d 个\n", len(fcRegions))
+
+	return &Provider{
+		provider: utils.Aliyun, id: id, config: config, identity: identity,
+		ossClient: ossClient, ecsRegions: ecsRegions, rdsRegions: rdsRegions, fcRegions: fcRegions,
+	}, nil
 }
 
 func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
@@ -141,10 +176,22 @@ func (p *Provider) Resources(ctx context.Context) (*schema.Resources, error) {
 	}
 	gologger.Info().Msgf("获取到 %d 条阿里云 OSS 信息", len(buckets.GetItems()))
 
+	fcProvider := functionProvider{
+		id: p.id, provider: p.provider, config: p.config,
+		fcRegions: p.fcRegions, identity: p.identity,
+	}
+	fcs, err := fcProvider.GetResource()
+	if err != nil {
+		return nil, err
+	}
+
+	gologger.Info().Msgf("获取到 %d 条阿里云 FC 信息", len(fcs.GetItems()))
+
 	finalList := schema.NewResources()
 	finalList.Merge(ecsList)
 	finalList.Merge(rdsList)
 	finalList.Merge(buckets)
+	finalList.Merge(fcList)
 	return finalList, nil
 }
 
