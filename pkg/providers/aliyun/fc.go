@@ -47,6 +47,7 @@ type FcTriggerConfig struct {
 }
 
 var fcList = schema.NewResources()
+var fcResourceMap = map[string]bool{}
 
 func (f *functionProvider) GetResource() (*schema.Resources, error) {
 	var (
@@ -96,7 +97,17 @@ func (f *functionProvider) GetResource() (*schema.Resources, error) {
 	return fcList, nil
 }
 
-// describeFcCustomDomains 经测试, fc 禁用公网访问, 如有自定义域名, 能自定义域名+路由直接访问函数
+func (f *functionProvider) newFcConfig(region string) *openapi.Config {
+	endpoint := fmt.Sprintf("%s.%s.fc.aliyuncs.com", f.identity.AccountId, region)
+	return &openapi.Config{
+		AccessKeyId:     &f.config.accessKeyID,
+		AccessKeySecret: &f.config.accessKeySecret,
+		Endpoint:        &endpoint,
+		RegionId:        &region,
+	}
+}
+
+// describeFcCustomDomains 经测试, 就算 fc 禁用公网访问, 如有自定义域名, 能自定义域名+路由直接访问函数
 func (f *functionProvider) describeFcCustomDomains(ch <-chan string, wg *sync.WaitGroup) error {
 	defer wg.Done()
 	var (
@@ -106,32 +117,42 @@ func (f *functionProvider) describeFcCustomDomains(ch <-chan string, wg *sync.Wa
 	)
 
 	for region := range ch {
-		gologger.Debug().Msgf("正在获取 %s 区域下的阿里云 FC 资源信息", region)
-		endpoint := fmt.Sprintf("%s.%s.fc.aliyuncs.com", f.identity.AccountId, region)
-		fcConfig := &openapi.Config{
-			AccessKeyId:     &f.config.accessKeyID,
-			AccessKeySecret: &f.config.accessKeySecret,
-			Endpoint:        &endpoint,
-		}
-		fcClient, err = fc.NewClient(fcConfig)
-
-		domainRes, err = fcClient.ListCustomDomains(&fc.ListCustomDomainsRequest{})
-		if err != nil {
-			gologger.Debug().Msgf("%s endpoint ListCustomDomains err: %s", endpoint, err)
+		if ok := fcResourceMap[region]; !ok {
+			gologger.Debug().Msgf("%s 区域下的阿里云无 FC 函数, 跳过获取自定义域名", region)
 			continue
 		}
 
-		// FIXME domainRes.Body.NextToken
-		for _, cd := range domainRes.Body.CustomDomains {
-			fcList.Append(&schema.Resource{
-				ID:       f.id,
-				Provider: f.provider,
-				// FIXME 目前 lc 输出结果并没有分区一说, 但在 fc 中很难识别是哪个区
-				// 因为控制台鼠标指针放到可用区并不会显示数量.... 所以目前先这样显示
-				DNSName: fmt.Sprintf("%s://%s#%s", strings.ToLower(*cd.Protocol), *cd.DomainName, region),
-				// 如果想判断内外网, 目前接口没有字段能表示是公网还是内网, 只能 dns 查询 CNAME
-				// 结果是否为 -internal.fc.aliyuncs.com 结尾
-			})
+		gologger.Debug().Msgf("正在获取 %s 区域下的阿里云 FC 自定义域名资源信息", region)
+		fcConfig := f.newFcConfig(region)
+		fcClient, err = fc.NewClient(fcConfig)
+		if err != nil {
+			gologger.Debug().Msgf("%s endpoint NewClient err: %s", *fcConfig.Endpoint, err)
+			break
+		}
+
+		lcdReq := &fc.ListCustomDomainsRequest{}
+		for {
+			domainRes, err = fcClient.ListCustomDomains(lcdReq)
+			if err != nil {
+				gologger.Debug().Msgf("%s endpoint ListCustomDomains err: %s", *fcClient.Endpoint, err)
+				continue
+			}
+			for _, cd := range domainRes.Body.CustomDomains {
+				fcList.Append(&schema.Resource{
+					ID:       f.id,
+					Provider: f.provider,
+					// FIXME 目前 lc 输出结果并没有 region 区分, 但在控制台 FC 中很难识别是哪个区
+					// 因为控制台鼠标指针放到可用区并不会显示数量.... 所以目前先这样显示
+					DNSName: fmt.Sprintf("%s://%s#%s", strings.ToLower(*cd.Protocol), *cd.DomainName, region),
+					// 如果想判断内外网, 目前接口没有字段能表示是公网还是内网, 只能 dns 查询 CNAME
+					// 结果是否为 -internal.fc.aliyuncs.com 结尾
+				})
+			}
+			if domainRes.Body.NextToken == nil {
+				break
+			}
+			gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
+			lcdReq.NextToken = domainRes.Body.NextToken
 		}
 	}
 	return err
@@ -140,82 +161,129 @@ func (f *functionProvider) describeFcCustomDomains(ch <-chan string, wg *sync.Wa
 func (f *functionProvider) describeFcService(ch <-chan string, wg *sync.WaitGroup) error {
 	defer wg.Done()
 	var (
-		err        error
-		fcClient   *fc.Client
-		serviceRes *fc.ListServicesResponse
-		funcRes    *fc.ListFunctionsResponse
-		triggerRes *fc.ListTriggersResponse
+		err      error
+		fcClient *fc.Client
 	)
 
 	for region := range ch {
-		endpoint := fmt.Sprintf("%s.%s.fc.aliyuncs.com", f.identity.AccountId, region)
-		fcConfig := &openapi.Config{
-			AccessKeyId:     &f.config.accessKeyID,
-			AccessKeySecret: &f.config.accessKeySecret,
-			Endpoint:        &endpoint,
-		}
+		gologger.Debug().Msgf("正在获取 %s 区域下的阿里云 FC 资源信息", region)
+
+		fcConfig := f.newFcConfig(region)
 		fcClient, err = fc.NewClient(fcConfig)
 		if err != nil {
-			gologger.Debug().Msgf("%s endpoint NewClient err: %s", endpoint, err)
+			gologger.Debug().Msgf("%s endpoint NewClient err: %s", *fcConfig.Endpoint, err)
 			break
 		}
 
-		serviceRes, err = fcClient.ListServices(&fc.ListServicesRequest{})
+		err = f.processFcService(fcClient)
 		if err != nil {
-			gologger.Debug().Msgf("%s endpoint ListServices err: %s", endpoint, err)
-			continue
-		}
-
-		// FIXME serviceRes.Body.NextToken
-		for _, s := range serviceRes.Body.Services {
-			funcRes, err = fcClient.ListFunctions(s.ServiceName, &fc.ListFunctionsRequest{})
-			if err != nil {
-				gologger.Debug().Msgf("%s endpoint ListFunctions err: %s", endpoint, err)
-				continue
-			}
-
-			// FIXME funcRes.Body.NextToken
-			for _, ft := range funcRes.Body.Functions {
-				triggerRes, err = fcClient.ListTriggers(s.ServiceName, ft.FunctionName, &fc.ListTriggersRequest{})
-				if err != nil {
-					gologger.Debug().Msgf(
-						"%s endpoint [%s]-[%s] ListTriggers err: %s",
-						endpoint, *s.ServiceName, *ft.FunctionName, err,
-					)
-					continue
-				}
-
-				// FIXME triggerRes.Body.NextToken
-				for _, t := range triggerRes.Body.Triggers {
-					if strings.ToLower(*t.TriggerType) == "http" {
-						var ftc FcTriggerConfig
-						err = json.Unmarshal([]byte(*t.TriggerConfig), &ftc)
-						if err != nil {
-							gologger.Debug().Msgf("%s endpoint Unmarshal FcTriggerConfig err: %s", endpoint, err)
-							continue
-						}
-						if ftc.DisableURLInternet {
-							continue
-						}
-						fcList.Append(&schema.Resource{
-							ID:       f.id,
-							Provider: f.provider,
-							// FIXME 目前 lc 输出结果并没有分区一说, 但在 fc 中很难识别是哪个区
-							// 因为控制台鼠标指针放到可用区并不会显示数量.... 所以目前先这样显示
-							DNSName: fmt.Sprintf("%s#%s", *t.UrlInternet, region),
-							Public:  ftc.DisableURLInternet,
-						})
-					}
-				}
-			}
+			gologger.Debug().Msgf("%s endpoint ListServices err: %s", *fcClient.Endpoint, err)
 		}
 	}
 
 	return err
 }
 
-func (f *functionProvider) describeFcTrigger(res *schema.Resource) {
+func (f *functionProvider) processFcService(fcClient *fc.Client) error {
+	for {
+		lsReq := &fc.ListServicesRequest{}
+		serviceRes, err := fcClient.ListServices(lsReq)
+		if err != nil {
+			return err
+		}
 
+		for _, s := range serviceRes.Body.Services {
+			err = f.processFcFunction(fcClient, s)
+			if err != nil {
+				gologger.Debug().Msgf("%s endpoint ListFunctions err: %s", *fcClient.Endpoint, err)
+				break
+			}
+		}
+
+		if serviceRes.Body.NextToken == nil {
+			break
+		}
+		gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
+		lsReq.NextToken = serviceRes.Body.NextToken
+	}
+
+	return nil
+}
+
+func (f *functionProvider) processFcFunction(fcClient *fc.Client, s *fc.ListServicesResponseBodyServices) error {
+	lfReq := &fc.ListFunctionsRequest{}
+	for {
+		funcRes, err := fcClient.ListFunctions(s.ServiceName, lfReq)
+		if err != nil {
+			return err
+		}
+
+		// speed up for describeFcCustomDomains
+		if len(funcRes.Body.Functions) > 0 {
+			fcResourceMap[*fcClient.RegionId] = true
+		}
+
+		for _, ft := range funcRes.Body.Functions {
+			err = f.processFcTrigger(fcClient, s, ft)
+			if err != nil {
+				gologger.Debug().Msgf(
+					"%s endpoint [%s]-[%s] ListTriggers err: %s",
+					*fcClient.Endpoint, *s.ServiceName, *ft.FunctionName, err,
+				)
+			}
+		}
+
+		if funcRes.Body.NextToken == nil {
+			break
+		}
+		gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
+		lfReq.NextToken = funcRes.Body.NextToken
+	}
+
+	return nil
+}
+
+func (f *functionProvider) processFcTrigger(
+	fcClient *fc.Client, s *fc.ListServicesResponseBodyServices, ft *fc.ListFunctionsResponseBodyFunctions,
+) error {
+	ltReq := &fc.ListTriggersRequest{}
+	for {
+		triggerRes, err := fcClient.ListTriggers(s.ServiceName, ft.FunctionName, ltReq)
+		if err != nil {
+			return err
+		}
+
+		for _, t := range triggerRes.Body.Triggers {
+			if strings.ToLower(*t.TriggerType) == "http" {
+				var ftc FcTriggerConfig
+				err = json.Unmarshal([]byte(*t.TriggerConfig), &ftc)
+				if err != nil {
+					gologger.Debug().Msgf("%s endpoint Unmarshal FcTriggerConfig err: %s", *fcClient.Endpoint, err)
+					continue
+				}
+				if ftc.DisableURLInternet {
+					continue
+				}
+				fcList.Append(&schema.Resource{
+					ID:       f.id,
+					Provider: f.provider,
+					// FIXME 目前 lc 输出结果并没有分区一说, 但在 fc 中很难识别是哪个区
+					// 因为控制台鼠标指针放到可用区并不会显示数量.... 所以目前先这样显示
+					DNSName: fmt.Sprintf("%s#%s", *t.UrlInternet, *fcClient.RegionId),
+					Public:  ftc.DisableURLInternet,
+				})
+			}
+		}
+
+		if triggerRes.Body.NextToken == nil {
+			break
+		}
+
+		gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
+		ltReq.NextToken = triggerRes.Body.NextToken
+	}
+
+	return nil
 }
 
 // GetFcRegions 貌似阿里云没有提供 SDK 获取可用区, 只能抓接口拿了
