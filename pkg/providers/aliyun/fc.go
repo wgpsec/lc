@@ -47,7 +47,7 @@ type FcTriggerConfig struct {
 }
 
 var fcList = schema.NewResources()
-var fcResourceMap = map[string]bool{}
+var fcResourceMap = sync.Map{}
 
 func (f *functionProvider) GetResource() (*schema.Resources, error) {
 	var (
@@ -117,7 +117,8 @@ func (f *functionProvider) describeFcCustomDomains(ch <-chan string, wg *sync.Wa
 	)
 
 	for region := range ch {
-		if ok := fcResourceMap[region]; !ok {
+
+		if _, ok := fcResourceMap.Load(region); !ok {
 			gologger.Debug().Msgf("%s 区域下的阿里云无 FC 函数, 跳过获取自定义域名", region)
 			continue
 		}
@@ -224,7 +225,7 @@ func (f *functionProvider) processFcFunction(fcClient *fc.Client, s *fc.ListServ
 
 		// speed up for describeFcCustomDomains
 		if len(funcRes.Body.Functions) > 0 {
-			fcResourceMap[*fcClient.RegionId] = true
+			fcResourceMap.Store(*fcClient.RegionId, true)
 		}
 
 		for _, ft := range funcRes.Body.Functions {
@@ -261,7 +262,7 @@ func (f *functionProvider) processFcTrigger(
 		}
 
 		for _, t := range triggerRes.Body.Triggers {
-			if strings.ToLower(*t.TriggerType) == "http" {
+			if t.TriggerType != nil && strings.ToLower(*t.TriggerType) == "http" {
 				var ftc FcTriggerConfig
 				err = json.Unmarshal([]byte(*t.TriggerConfig), &ftc)
 				if err != nil {
