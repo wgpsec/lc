@@ -143,6 +143,7 @@ func (f *functionProvider) describeFcCustomDomains(ch <-chan string, wg *sync.Wa
 					Provider: f.provider,
 					// FIXME 目前 lc 输出结果并没有 region 区分, 但在控制台 FC 中很难识别是哪个区
 					// 因为控制台鼠标指针放到可用区并不会显示数量.... 所以目前先这样显示
+					// 此外, 有的 url 不会拼接 cn-shanghai 之类的
 					DNSName: fmt.Sprintf("%s://%s#%s", strings.ToLower(*cd.Protocol), *cd.DomainName, region),
 					// 如果想判断内外网, 目前接口没有字段能表示是公网还是内网, 只能 dns 查询 CNAME
 					// 结果是否为 -internal.fc.aliyuncs.com 结尾
@@ -185,8 +186,8 @@ func (f *functionProvider) describeFcService(ch <-chan string, wg *sync.WaitGrou
 }
 
 func (f *functionProvider) processFcService(fcClient *fc.Client) error {
+	lsReq := &fc.ListServicesRequest{}
 	for {
-		lsReq := &fc.ListServicesRequest{}
 		serviceRes, err := fcClient.ListServices(lsReq)
 		if err != nil {
 			return err
@@ -203,7 +204,10 @@ func (f *functionProvider) processFcService(fcClient *fc.Client) error {
 		if serviceRes.Body.NextToken == nil {
 			break
 		}
-		gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
+		gologger.Debug().Msgf(
+			"%s region's serviceRes NextToken 不为空 %s，正在获取下一页数据",
+			*fcClient.RegionId, *serviceRes.Body.NextToken,
+		)
 		lsReq.NextToken = serviceRes.Body.NextToken
 	}
 
@@ -236,7 +240,10 @@ func (f *functionProvider) processFcFunction(fcClient *fc.Client, s *fc.ListServ
 		if funcRes.Body.NextToken == nil {
 			break
 		}
-		gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
+		gologger.Debug().Msgf(
+			"%s service's funcRes NextToken 不为空 %s，正在获取下一页数据",
+			*s.ServiceName, *funcRes.Body.NextToken,
+		)
 		lfReq.NextToken = funcRes.Body.NextToken
 	}
 
@@ -264,11 +271,19 @@ func (f *functionProvider) processFcTrigger(
 				if ftc.DisableURLInternet {
 					continue
 				}
+				if t.UrlInternet == nil {
+					gologger.Debug().Msgf(
+						"%s endpoint %s - %s  enable internet access but url not found, skip",
+						*fcClient.Endpoint, *s.ServiceName, *ft.FunctionName,
+					)
+					continue
+				}
 				fcList.Append(&schema.Resource{
 					ID:       f.id,
 					Provider: f.provider,
 					// FIXME 目前 lc 输出结果并没有分区一说, 但在 fc 中很难识别是哪个区
 					// 因为控制台鼠标指针放到可用区并不会显示数量.... 所以目前先这样显示
+					// 此外, 有的 url 不会拼接 cn-shanghai 之类的
 					DNSName: fmt.Sprintf("%s#%s", *t.UrlInternet, *fcClient.RegionId),
 					Public:  ftc.DisableURLInternet,
 				})
@@ -279,7 +294,10 @@ func (f *functionProvider) processFcTrigger(
 			break
 		}
 
-		gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
+		gologger.Debug().Msgf(
+			"%s service %s function triggerRes NextToken 不为空 %s，正在获取下一页数据",
+			*s.ServiceName, *ft.FunctionName, *triggerRes.Body.NextToken,
+		)
 		ltReq.NextToken = triggerRes.Body.NextToken
 	}
 
