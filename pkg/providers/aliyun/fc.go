@@ -102,6 +102,7 @@ func (f *functionProvider) newFcConfig(region string) *openapi.Config {
 	return &openapi.Config{
 		AccessKeyId:     &f.config.accessKeyID,
 		AccessKeySecret: &f.config.accessKeySecret,
+		SecurityToken:   &f.config.sessionToken,
 		Endpoint:        &endpoint,
 		RegionId:        &region,
 	}
