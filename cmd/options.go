@@ -21,6 +21,7 @@ type Options struct {
 	Output         string              // Output 将结果写入到文件中
 	Provider       goflags.StringSlice // Provider 指定要列出的云服务商
 	Id             goflags.StringSlice // Id 指定要列出的对象
+	CloudServices  goflags.StringSlice // CloudServices 指定要列出的服务
 }
 
 var (
@@ -37,6 +38,8 @@ func ParseOptions() *Options {
 		flagSet.IntVarP(&options.Threads, "threads", "t", 3, "指定扫描的线程数量"),
 	)
 	flagSet.CreateGroup("filter", "过滤",
+		flagSet.StringSliceVarP(&options.CloudServices, "cloud-services", "cs", goflags.StringSlice{"all"}, "指定要列出的服务",
+			goflags.NormalizedStringSliceOptions),
 		flagSet.StringSliceVarP(&options.Id, "id", "i", nil, "指定要使用的配置（以逗号分隔）", goflags.NormalizedStringSliceOptions),
 		flagSet.StringSliceVarP(&options.Provider, "provider", "p", nil, "指定要使用的云服务商（以逗号分隔）", goflags.NormalizedStringSliceOptions),
 		flagSet.BoolVarP(&options.ExcludePrivate, "exclude-private", "ep", false, "从输出的结果中排除私有 IP"),

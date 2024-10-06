@@ -57,9 +57,10 @@ func (f *functionProvider) GetResource() (*schema.Resources, error) {
 		regions []string
 	)
 
-	for _, region := range f.fcRegions {
-		regions = append(regions, region.RegionId)
-	}
+	//for _, region := range f.fcRegions {
+	//	regions = append(regions, region.RegionId)
+	//}
+	regions = append(regions, "cn-hangzhou")
 
 	threads = schema.GetThreads()
 	taskCh := make(chan string, threads)
@@ -261,7 +262,6 @@ func (f *functionProvider) processFcTrigger(
 		if err != nil {
 			return err
 		}
-
 		for _, t := range triggerRes.Body.Triggers {
 			if t.TriggerType != nil && strings.ToLower(*t.TriggerType) == "http" {
 				var ftc FcTriggerConfig
@@ -291,7 +291,6 @@ func (f *functionProvider) processFcTrigger(
 				})
 			}
 		}
-
 		if triggerRes.Body.NextToken == nil {
 			break
 		}
@@ -302,7 +301,6 @@ func (f *functionProvider) processFcTrigger(
 		)
 		ltReq.NextToken = triggerRes.Body.NextToken
 	}
-
 	return nil
 }
 

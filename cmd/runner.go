@@ -52,7 +52,8 @@ func (r *Runner) Enumerate() {
 			finalConfig = append(finalConfig, item)
 		}
 	}
-	inventory, err := inventory.New(finalConfig)
+
+	inventory, err := inventory.New(finalConfig, r.options.CloudServices)
 	if err != nil {
 		gologger.Fatal().Msgf("%s", err)
 	}
@@ -68,7 +69,7 @@ func (r *Runner) Enumerate() {
 	schema.SetThreads(r.options.Threads)
 	for _, provider := range inventory.Providers {
 		gologger.Info().Msgf("正在列出 %s (%s) 的资产\n", provider.Name(), provider.ID())
-		instances, err := provider.Resources(context.Background())
+		instances, err := provider.Resources(context.Background(), r.options.CloudServices)
 		if err != nil {
 			gologger.Error().Msgf("无法获取 %s（%s）的资产: %s\n", provider.Name(), provider.ID(), err)
 			continue
@@ -102,7 +103,7 @@ func (r *Runner) Enumerate() {
 			}
 		}
 		if Count == 0 {
-			gologger.Info().Msgf("在 %s (%s) 下未发现资产，这一般是由于权限不足或没有资产。", provider.Name(), provider.ID())
+			gologger.Info().Msgf("在 %s (%s) 下未发现资产，这可能是由于权限不足或没有资产，您可以在确认有相关权限后再进行尝试。", provider.Name(), provider.ID())
 		}
 		if !r.options.Silent {
 			fmt.Println()

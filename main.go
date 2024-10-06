@@ -1,6 +1,6 @@
 // 感谢 github.com/projectdiscovery/cloudlist 项目， 得益
 // 于 cloudlist 的 MIT 开源协议，为这个 Weekend Project 提
-// 供了大量帮助， 此项目也将以 MIT 协议开源，共同助力人类开源项目发展。
+// 供了大量帮助， 此项目也将以 MIT 协议开源，助力安全开源项目发展。
 
 // Thank you to the github.com/projectdiscovery/cloudlist
 // project, which has provided substantial assistance to this

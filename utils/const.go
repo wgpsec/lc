@@ -1,11 +1,12 @@
 package utils
 
 const (
-	Provider     = "provider"
-	Id           = "id"
-	AccessKey    = "access_key"
-	SecretKey    = "secret_key"
-	SessionToken = "session_token"
+	Provider      = "provider"
+	Id            = "id"
+	CloudServices = "cloud_services"
+	AccessKey     = "access_key"
+	SecretKey     = "secret_key"
+	SessionToken  = "session_token"
 )
 
 const (

@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"fmt"
+	"github.com/projectdiscovery/goflags"
 	"github.com/wgpsec/lc/pkg/providers/aliyun"
 	"github.com/wgpsec/lc/pkg/providers/baidu"
 	"github.com/wgpsec/lc/pkg/providers/huawei"
@@ -18,7 +19,7 @@ type Inventory struct {
 	Providers []schema.Provider
 }
 
-func New(options schema.Options) (*Inventory, error) {
+func New(options schema.Options, cs goflags.StringSlice) (*Inventory, error) {
 	inventory := &Inventory{}
 
 	for _, block := range options {
@@ -26,7 +27,7 @@ func New(options schema.Options) (*Inventory, error) {
 		if !ok {
 			continue
 		}
-		provider, err := nameToProvider(value, block)
+		provider, err := nameToProvider(value, block, cs)
 		if err != nil {
 			return nil, err
 		}
@@ -35,24 +36,24 @@ func New(options schema.Options) (*Inventory, error) {
 	return inventory, nil
 }
 
-func nameToProvider(value string, block schema.OptionBlock) (schema.Provider, error) {
+func nameToProvider(value string, block schema.OptionBlock, cs goflags.StringSlice) (schema.Provider, error) {
 	switch value {
 	case utils.Aliyun:
-		return aliyun.New(block)
+		return aliyun.New(block, cs)
 	case utils.Tencent:
-		return tencent.New(block)
+		return tencent.New(block, cs)
 	case utils.Huawei:
-		return huawei.New(block)
+		return huawei.New(block, cs)
 	case utils.TianYi:
-		return tianyi.New(block)
+		return tianyi.New(block, cs)
 	case utils.Baidu:
-		return baidu.New(block)
+		return baidu.New(block, cs)
 	case utils.LianTong:
-		return liantong.New(block)
+		return liantong.New(block, cs)
 	case utils.QiNiu:
-		return qiniu.New(block)
+		return qiniu.New(block, cs)
 	case utils.YiDong:
-		return yidong.New(block)
+		return yidong.New(block, cs)
 	default:
 		return nil, fmt.Errorf("发现无效的云服务商名: %s", value)
 	}
