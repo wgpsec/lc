@@ -29,10 +29,11 @@ func (f *function3Provider) GetResource() (*schema.Resources, error) {
 		regions []string
 	)
 
-	//for _, region := range f.fcRegions {
-	//	regions = append(regions, region.RegionId)
-	//}
-	regions = append(regions, "cn-hangzhou")
+	for _, region := range f.fcRegions {
+		if !strings.Contains(region.RegionId, "finance") {
+			regions = append(regions, region.RegionId)
+		}
+	}
 
 	threads = schema.GetThreads()
 	taskCh := make(chan string, threads)
@@ -83,24 +84,17 @@ func (f *function3Provider) listCustomDomains(ch <-chan string, wg *sync.WaitGro
 		}
 
 		lcdReq := &fc.ListCustomDomainsRequest{}
-		for {
-			domainRes, err = fcClient.ListCustomDomains(lcdReq)
-			if err != nil {
-				gologger.Debug().Msgf("%s endpoint ListCustomDomains err: %s", *fcClient.Endpoint, err)
-				continue
-			}
-			for _, cd := range domainRes.Body.CustomDomains {
-				fc3List.Append(&schema.Resource{
-					ID:       f.id,
-					Provider: f.provider,
-					DNSName:  fmt.Sprintf("%s://%s", strings.ToLower(*cd.Protocol), *cd.DomainName),
-				})
-			}
-			if domainRes.Body.NextToken == nil {
-				break
-			}
-			gologger.Debug().Msgf("NextToken 不为空，正在获取下一页数据")
-			lcdReq.NextToken = domainRes.Body.NextToken
+		domainRes, err = fcClient.ListCustomDomains(lcdReq)
+		if err != nil {
+			gologger.Debug().Msgf("%s endpoint ListCustomDomains err: %s", *fcClient.Endpoint, err)
+			continue
+		}
+		for _, cd := range domainRes.Body.CustomDomains {
+			fc3List.Append(&schema.Resource{
+				ID:       f.id,
+				Provider: f.provider,
+				DNSName:  fmt.Sprintf("%s://%s", strings.ToLower(*cd.Protocol), *cd.DomainName),
+			})
 		}
 	}
 	return err
