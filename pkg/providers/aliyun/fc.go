@@ -57,10 +57,11 @@ func (f *functionProvider) GetResource() (*schema.Resources, error) {
 		regions []string
 	)
 
-	//for _, region := range f.fcRegions {
-	//	regions = append(regions, region.RegionId)
-	//}
-	regions = append(regions, "cn-hangzhou")
+	for _, region := range f.fcRegions {
+		if !strings.Contains(region.RegionId, "finance") {
+			regions = append(regions, region.RegionId)
+		}
+	}
 
 	threads = schema.GetThreads()
 	taskCh := make(chan string, threads)

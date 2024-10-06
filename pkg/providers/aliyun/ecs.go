@@ -90,18 +90,32 @@ func (d *instanceProvider) describeEcsInstances(ch <-chan string, wg *sync.WaitG
 				if len(instance.PublicIpAddress.IpAddress) > 0 {
 					ipv4 = append(ipv4, instance.PublicIpAddress.IpAddress...)
 				}
-				if len(instance.NetworkInterfaces.NetworkInterface) > 0 && len(instance.NetworkInterfaces.NetworkInterface[0].PrivateIpSets.PrivateIpSet) > 0 {
+				if len(instance.EipAddress.IpAddress) > 0 {
+					ipv4 = append(ipv4, instance.EipAddress.IpAddress)
+				}
+				if len(instance.NetworkInterfaces.NetworkInterface[0].PrivateIpSets.PrivateIpSet) > 0 {
 					privateIPv4 = instance.NetworkInterfaces.NetworkInterface[0].PrivateIpSets.PrivateIpSet[0].PrivateIpAddress
 				}
-				for _, v := range ipv4 {
+				if len(ipv4) > 0 {
+					for _, v := range ipv4 {
+						ecsList.Append(&schema.Resource{
+							ID:          d.id,
+							Provider:    d.provider,
+							PublicIPv4:  v,
+							PrivateIpv4: privateIPv4,
+							Public:      true,
+						})
+					}
+				} else {
 					ecsList.Append(&schema.Resource{
 						ID:          d.id,
 						Provider:    d.provider,
-						PublicIPv4:  v,
+						PublicIPv4:  "",
 						PrivateIpv4: privateIPv4,
-						Public:      v != "",
+						Public:      false,
 					})
 				}
+
 			}
 			if response.NextToken == "" {
 				gologger.Debug().Msgf("NextToken 为空，已终止获取")

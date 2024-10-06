@@ -99,9 +99,10 @@ Flags:
   -t, -threads int    指定扫描的线程数量 (default 3)
 
 过滤:
-  -i, -id string[]        指定要使用的配置（以逗号分隔）
-  -p, -provider string[]  指定要使用的云服务商（以逗号分隔）
-  -ep, -exclude-private   从输出的结果中排除私有 IP
+  -cs, -cloud-services string[]  指定要列出的服务 (default ["all"])
+  -i, -id string[]               指定要使用的配置（以逗号分隔）
+  -p, -provider string[]         指定要使用的云服务商（以逗号分隔）
+  -ep, -exclude-private          从输出的结果中排除私有 IP
 
 输出:
   -o, -output string  将结果输出到指定的文件中
@@ -138,9 +139,25 @@ lc -ep -s | httpx -sc -title -silent
 
 更多用法可以查看 [LC 使用手册](https://wiki.teamssix.com/lc)
 
-## 贡献
+## 贡献者
 
 十分欢迎各位师傅为 LC 项目贡献代码，如果您想为该项目贡献代码，请参见贡献说明：[CONTRIBUTING](https://github.com/wgpsec/lc/blob/master/CONTRIBUTING.md)
+
+<div align=center>
+    <table>
+        <tr>
+            <td align="center">
+                <a href="https://github.com/teamssix"><img alt="TeamsSix" src="./static/49087564.jpeg" style="width: 100px;" /><br />TeamsSix</a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/ShuBo6"><img alt="ShuBo6" src="./static/41125338.png" style="width: 100px;" /><br />ShuBo6</a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/tarihub"><img alt="tari" src="./static/39155974.jpeg" style="width: 100px;" /><br />tari</a>
+            </td>
+        </tr>
+    </table>
+</div>
 
 ## 致谢
 
