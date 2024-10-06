@@ -3,6 +3,7 @@ package schema
 import (
 	"context"
 	"fmt"
+	"github.com/projectdiscovery/goflags"
 	"github.com/wgpsec/lc/pkg/schema/validate"
 	"os"
 	"strings"
@@ -32,7 +33,7 @@ func (r *Resources) GetItems() []*Resource {
 type Provider interface {
 	Name() string
 	ID() string
-	Resources(ctx context.Context) (*Resources, error)
+	Resources(ctx context.Context, cs goflags.StringSlice) (*Resources, error)
 }
 
 type Resource struct {

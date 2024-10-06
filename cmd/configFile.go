@@ -19,6 +19,7 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 # # 访问凭证获取地址：https://ram.console.aliyun.com
 # - provider: aliyun
 #   id: aliyun_default
+#   cloud_services: ecs,oss,rds,fc 
 #   access_key: 
 #   secret_key: 
 #   session_token: 
@@ -27,6 +28,7 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 # # 访问凭证获取地址：https://console.cloud.tencent.com/cam
 # - provider: tencent
 #   id: tencent_cloud_default
+#   cloud_services: cvm,lh,cos
 #   access_key: 
 #   secret_key: 
 #   session_token: 
@@ -35,6 +37,7 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 # # 访问凭证获取地址：https://console.huaweicloud.com/iam
 # - provider: huawei
 #   id: huawei_cloud_default
+#   cloud_services: obs
 #   access_key: 
 #   secret_key: 
 #   session_token: 
@@ -42,14 +45,16 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 # # 天翼云
 # # 访问凭证获取地址：https://oos-cn.ctyun.cn/oos/ctyun/iam/dist/index.html#/certificate
 # - provider: tianyi
-#  id: tianyi_cloud_default
-#  access_key: 
-#  secret_key:
+#   id: tianyi_cloud_default
+#   cloud_services: oos
+#   access_key: 
+#   secret_key:
 
 # # 百度云
 # # 访问凭证获取地址：https://console.bce.baidu.com/iam/
 # - provider: baidu
 #   id: baidu_cloud_default
+#   cloud_services: bos,bcc
 #   access_key: 
 #   secret_key: 
 #   session_token: 
@@ -58,6 +63,7 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 # # 访问凭证获取地址：https://console.cucloud.cn/console/uiam
 # - provider: liantong
 #   id: liantong_cloud_default
+#   cloud_services: oss
 #   access_key: 
 #   secret_key: 
 #   session_token: 
@@ -66,6 +72,7 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 # # 访问凭证获取地址：https://portal.qiniu.com/developer/user/key
 # - provider: qiniu
 #   id: qiniu_cloud_default
+#   cloud_services: kodo
 #   access_key: 
 #   secret_key:
 
@@ -73,6 +80,7 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 # # 访问凭证获取地址：https://console.ecloud.10086.cn/api/page/eos-console-web/CIDC-RP-00/eos/key
 # - provider: yidong
 #   id: yidong_cloud_default
+#   cloud_services: eos
 #   access_key: 
 #   secret_key: 
 #   session_token: 

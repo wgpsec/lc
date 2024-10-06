@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.1.0](https://github.com/wgpsec/lc/releases/tag/v1.1.0) 2024.10.6
+
+* 支持列出阿里云 FC 函数计算服务
+* 支持在列出时指定要列出的云服务类型
+
 ## [v1.0.1](https://github.com/wgpsec/lc/releases/tag/v1.0.1) 2024.5.15
 
 * 支持列出移动云 EOS 对象存储服务
