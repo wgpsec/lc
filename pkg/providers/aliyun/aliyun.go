@@ -3,6 +3,9 @@ package aliyun
 import (
 	"context"
 	"fmt"
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	domain "github.com/alibabacloud-go/domain-20180129/v4/client"
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -21,6 +24,7 @@ type Provider struct {
 	provider      string
 	config        providerConfig
 	ossClient     *oss.Client
+	domainClient  *domain.Client
 	ecsRegions    *ecs.DescribeRegionsResponse
 	rdsRegions    *rds.DescribeRegionsResponse
 	fcRegions     []FcRegion
@@ -37,12 +41,13 @@ type providerConfig struct {
 
 func New(options schema.OptionBlock, cs goflags.StringSlice) (*Provider, error) {
 	var (
-		region    = "cn-beijing"
-		ossClient *oss.Client
-		ecsClient *ecs.Client
-		rdsClient *rds.Client
-		stsClient *sts.Client
-		err       error
+		region       = "cn-beijing"
+		ossClient    *oss.Client
+		ecsClient    *ecs.Client
+		rdsClient    *rds.Client
+		stsClient    *sts.Client
+		domainClient *domain.Client
+		err          error
 
 		identity   *sts.GetCallerIdentityResponse
 		ecsRegions *ecs.DescribeRegionsResponse
@@ -167,12 +172,22 @@ func New(options schema.OptionBlock, cs goflags.StringSlice) (*Provider, error) 
 			}
 
 			gologger.Debug().Msgf("阿里云 FC 区域信息获取成功, 共 %d 个\n", len(fcRegions))
+
+		case "domain":
+			// domain client
+			credential := &openapi.Config{AccessKeyId: tea.String(accessKeyID), AccessKeySecret: tea.String(accessKeySecret),
+				SecurityToken: tea.String(sessionToken)}
+			domainClient, err = domain.NewClient(credential)
+			if err != nil {
+				return nil, err
+				gologger.Debug().Msg("阿里云 Domain 客户端创建成功")
+			}
 		}
 	}
-
 	return &Provider{
 		provider: utils.Aliyun, id: id, config: config, identity: identity,
 		ossClient: ossClient, ecsRegions: ecsRegions, rdsRegions: rdsRegions, fcRegions: fcRegions, cloudServices: cloudServices,
+		domainClient: domainClient,
 	}, nil
 }
 
@@ -228,9 +243,17 @@ func (p *Provider) Resources(ctx context.Context, cs goflags.StringSlice) (*sche
 			if err != nil {
 				return nil, err
 			}
-
 			gologger.Info().Msgf("获取到 %d 条阿里云 FC 信息", len(fcList.GetItems())+len(fc3List.GetItems()))
 			finalList.Merge(fc3List)
+		case "domain":
+			// domain
+			domainProvider := &domainProvider{id: p.id, provider: p.provider, domainClient: p.domainClient}
+			domainList, err := domainProvider.GetResource(ctx)
+			if err != nil {
+				return nil, err
+			}
+			gologger.Info().Msgf("获取到 %d 条阿里云 Domain 信息", len(domainList.GetItems()))
+			finalList.Merge(domainList)
 		}
 	}
 	return finalList, nil
