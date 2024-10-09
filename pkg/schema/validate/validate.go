@@ -47,7 +47,7 @@ type Validator struct {
 func NewValidator() (*Validator, error) {
 	validator := &Validator{}
 	// regex from: https://github.com/asaskevich/govalidator
-	validator.rxDNSName = regexp.MustCompile(`^([a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*[\._]?$`)
+	validator.rxDNSName = regexp.MustCompile(`^(\*\.)?([a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*[\._]?$`)
 
 	err := validator.appendIPv4Ranges(ipv4PrivateRanges)
 	if err != nil {

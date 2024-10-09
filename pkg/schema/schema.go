@@ -43,6 +43,7 @@ type Resource struct {
 	PublicIPv4  string `json:"public_ipv4,omitempty"`
 	PrivateIpv4 string `json:"private_ipv4,omitempty"`
 	DNSName     string `json:"dns_name,omitempty"`
+	DNSRecord   string `json:"dns_record,omitempty"`
 }
 
 type Options []OptionBlock
@@ -59,6 +60,11 @@ func init() {
 
 // Resources
 func (r *Resources) appendResource(resource *Resource, uniqueMap *sync.Map) {
+	if _, ok := uniqueMap.Load(resource.DNSRecord + resource.DNSName + resource.PublicIPv4 + resource.PrivateIpv4); !ok && resource.DNSRecord != "" {
+		r.AppendItem(resource)
+		uniqueMap.Store(resource.DNSRecord+resource.DNSName+resource.PublicIPv4+resource.PrivateIpv4, struct{}{})
+		return
+	}
 	if _, ok := uniqueMap.Load(resource.DNSName); !ok && resource.DNSName != "" {
 		resourceType := validator.Identify(resource.DNSName)
 		r.appendResourceWithTypeAndMeta(resourceType, resource.DNSName, resource.ID, resource.Provider)

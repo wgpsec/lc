@@ -19,7 +19,7 @@ const defaultConfigFile = `# # lc (list cloud) 的云服务商配置文件
 # # 访问凭证获取地址：https://ram.console.aliyun.com
 # - provider: aliyun
 #   id: aliyun_default
-#   cloud_services: ecs,oss,rds,fc,domain
+#   cloud_services: ecs,oss,rds,fc,domain,dns
 #   access_key: 
 #   secret_key: 
 #   session_token: 

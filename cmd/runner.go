@@ -77,6 +77,34 @@ func (r *Runner) Enumerate() {
 		var Count int
 		for _, instance := range instances.GetItems() {
 			builder.Reset()
+			if instance.DNSRecord != "" {
+				Count++
+				builder.WriteString("DNSRecord: ")
+				builder.WriteString(instance.DNSRecord)
+				builder.WriteString(` `)
+				// 输出DNSName
+				if instance.DNSName != "" {
+					builder.WriteString("CNAME: ")
+					builder.WriteString(instance.DNSName)
+					builder.WriteRune('\n')
+				}
+				// 输出PublicIPv4
+				if instance.PublicIPv4 != "" {
+					builder.WriteString("PublicIPv4: ")
+					builder.WriteString(instance.PublicIPv4)
+					builder.WriteRune('\n')
+				}
+				// 输出PrivateIpv4
+				if instance.PrivateIpv4 != "" {
+					builder.WriteString("PrivateIPv4: ")
+					builder.WriteString(instance.PrivateIpv4)
+					builder.WriteRune('\n')
+				}
+				output.WriteString(builder.String())
+				gologger.Silent().Msgf("%s", builder.String())
+				continue
+			}
+
 			if instance.DNSName != "" {
 				Count++
 				builder.WriteString(instance.DNSName)
