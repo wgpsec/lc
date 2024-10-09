@@ -3,6 +3,7 @@ package aliyun
 import (
 	"context"
 	"fmt"
+	dns "github.com/alibabacloud-go/alidns-20150109/v4/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	domain "github.com/alibabacloud-go/domain-20180129/v4/client"
 	"github.com/alibabacloud-go/tea/tea"
@@ -30,6 +31,7 @@ type Provider struct {
 	fcRegions     []FcRegion
 	cloudServices []string
 	identity      *sts.GetCallerIdentityResponse
+	dnsClient     *dns.Client
 }
 
 type providerConfig struct {
@@ -47,6 +49,7 @@ func New(options schema.OptionBlock, cs goflags.StringSlice) (*Provider, error) 
 		rdsClient    *rds.Client
 		stsClient    *sts.Client
 		domainClient *domain.Client
+		dnsClient    *dns.Client
 		err          error
 
 		identity   *sts.GetCallerIdentityResponse
@@ -182,17 +185,36 @@ func New(options schema.OptionBlock, cs goflags.StringSlice) (*Provider, error) 
 				return nil, err
 				gologger.Debug().Msg("阿里云 Domain 客户端创建成功")
 			}
+
+		case "dns":
+			// domain client
+			credential := &openapi.Config{AccessKeyId: tea.String(accessKeyID), AccessKeySecret: tea.String(accessKeySecret),
+				SecurityToken: tea.String(sessionToken)}
+			domainClient, err = domain.NewClient(credential)
+			if err != nil {
+				return nil, err
+				gologger.Debug().Msg("阿里云 Domain 客户端创建成功")
+			}
+
+			// dns client
+			dnsClient, err = dns.NewClient(credential)
+			if err != nil {
+				return nil, err
+				gologger.Debug().Msg("阿里云 dns 客户端创建成功")
+			}
 		}
 	}
 	return &Provider{
 		provider: utils.Aliyun, id: id, config: config, identity: identity,
 		ossClient: ossClient, ecsRegions: ecsRegions, rdsRegions: rdsRegions, fcRegions: fcRegions, cloudServices: cloudServices,
 		domainClient: domainClient,
+		dnsClient:    dnsClient,
 	}, nil
 }
 
 func (p *Provider) Resources(ctx context.Context, cs goflags.StringSlice) (*schema.Resources, error) {
 	finalList := schema.NewResources()
+	domainListForDNS := schema.NewResources()
 	for _, cloudService := range p.cloudServices {
 		switch cloudService {
 		case "ecs":
@@ -254,6 +276,32 @@ func (p *Provider) Resources(ctx context.Context, cs goflags.StringSlice) (*sche
 			}
 			gologger.Info().Msgf("获取到 %d 条阿里云 Domain 信息", len(domainList.GetItems()))
 			finalList.Merge(domainList)
+			domainListForDNS.Merge(domainList)
+		case "dns":
+			if len(domainListForDNS.GetItems()) <= 0 {
+				//dns
+				domainProvider := &domainProvider{id: p.id, provider: p.provider, domainClient: p.domainClient}
+				domainList, err := domainProvider.GetResource(ctx)
+				if err != nil {
+					return nil, err
+				}
+				gologger.Info().Msgf("获取到 %d 条阿里云 Domain 信息", len(domainList.GetItems()))
+				finalList.Merge(domainList)
+				domainListForDNS.Merge(domainList)
+			}
+
+			// dns
+			dnsProvider := &dnsProvider{id: p.id, provider: p.provider, dnsClient: p.dnsClient}
+			dnsList := schema.NewResources()
+			for _, item := range domainListForDNS.GetItems() {
+				tmpList, err := dnsProvider.GetResource(ctx, item.DNSName)
+				if err != nil {
+					return nil, err
+				}
+				finalList.Merge(tmpList)
+				dnsList.Merge(tmpList)
+			}
+			gologger.Info().Msgf("获取到 %d 条阿里云 dns 信息", len(dnsList.GetItems()))
 		}
 	}
 	return finalList, nil
